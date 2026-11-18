@@ -1,0 +1,191 @@
+[
+  {
+    "keywords": ["message", "source", "stage 1", "data"],
+    "stage": "message",
+    "answer": "The Message stage represents the raw information at the source before transmission—such as text entered on a keyboard or pixel brightness from an image sensor. To a computer, information is abstract until encoded into numbers."
+  },
+  {
+    "keywords": ["encode", "ascii", "binary", "bits", "stage 2", "characters"],
+    "stage": "encode",
+    "answer": "Encoding converts characters into standard numerical codes (UTF-8/ASCII) and then into sequences of 8-bit binary digits (0s and 1s). For example, the character 'H' has ASCII decimal 72, which is stored as binary 01001000."
+  },
+  {
+    "keywords": ["encrypt", "encryption", "xor", "cipher", "secret", "key", "stage 3", "confidentiality"],
+    "stage": "encrypt",
+    "answer": "Encryption scrambles data bits before transmission to provide confidentiality against eavesdroppers. In SignalForge, an educational XOR stream cipher is used: each byte is bitwise XORed with a secret key (default 'SF'). Real-world systems use standards like AES-256 or TLS."
+  },
+  {
+    "keywords": ["who encrypts", "who decrypts", "where encryption"],
+    "stage": "encrypt",
+    "answer": "The transmitter's software encrypts data before sending it into the channel. The legitimate receiver, possessing the identical shared key, applies the same XOR operation to decrypt and reconstruct the original bits."
+  },
+  {
+    "keywords": ["protect", "crc", "checksum", "stage 4", "error detection"],
+    "stage": "protect",
+    "answer": "Error detection uses a CRC-8 checksum (polynomial 0x07, x^8 + x^2 + x + 1). The sender computes an 8-bit remainder over the encrypted payload and appends it. The receiver recomputes the CRC to verify whether any bits were altered during transmission."
+  },
+  {
+    "keywords": ["hamming", "fec", "forward error correction", "stage 4", "parity"],
+    "stage": "protect",
+    "answer": "Hamming(7,4) is a Forward Error Correction (FEC) block code. It encodes every 4 data bits by adding 3 parity bits into a 7-bit codeword [p1 p2 d1 p3 d2 d3 d4]. This enables the receiver to automatically detect and correct any single-bit error per block without requesting retransmission."
+  },
+  {
+    "keywords": ["modulate", "modulation", "carrier", "wave", "psk", "ask", "fsk", "stage 5"],
+    "stage": "modulate",
+    "answer": "Physical transmission media (cables and wireless radio) cannot carry discrete square binary pulses over distance. Modulation varies a physical characteristic of a high-frequency sinusoidal carrier wave: ASK varies amplitude, FSK varies frequency, and PSK flips phase by 180° for bit 0 vs 1."
+  },
+  {
+    "keywords": ["channel", "awgn", "noise", "medium", "stage 6", "interference"],
+    "stage": "channel",
+    "answer": "The channel represents the physical medium (Wi-Fi, copper, fiber) between transmitter and receiver. Thermal vibrations introduce Additive White Gaussian Noise (AWGN), which randomly distorts sample amplitudes. In SignalForge, this is the only stage where errors are injected."
+  },
+  {
+    "keywords": ["demodulate", "demodulation", "correlator", "decision", "stage 7"],
+    "stage": "demodulate",
+    "answer": "Demodulation uses a coherent correlation receiver. The receiver takes the inner product of the received noisy waveform with expected basis carrier waves over each bit window, making a maximum-likelihood bit decision (1 or 0) based on which correlation statistic is larger."
+  },
+  {
+    "keywords": ["recover", "decoding", "repair", "stage 8", "result"],
+    "stage": "recover",
+    "answer": "Recovery is the inverse of the transmitter chain: 1) Hamming syndromic decoding identifies and flips any damaged bits; 2) CRC-8 verifies payload integrity; 3) XOR decryption restores plain bytes; 4) ASCII decoding reconstructs the original text."
+  },
+  {
+    "keywords": ["ber", "bit error rate", "what is ber", "error rate"],
+    "answer": "Bit Error Rate (BER) is the fundamental figure of merit for a communication link. Raw BER is the fraction of bits flipped on air (wrong bits / total bits on air). Final BER is the fraction of corrupted payload bits remaining after error correction."
+  },
+  {
+    "keywords": ["ebn0", "eb/n0", "snr", "signal to noise"],
+    "answer": "Eb/N0 is the normalized Signal-to-Noise Ratio: energy per bit (Eb) divided by the noise spectral density (N0), expressed in decibels (dB). Higher Eb/N0 means a cleaner signal with fewer bit errors."
+  },
+  {
+    "keywords": ["why noise flips bits", "flips", "wrong bits", "decision error"],
+    "answer": "Noise flips bits when its random amplitude spike is large enough to push the received wave across the decision boundary. For example, in PSK, if positive voltage +A is hit by a negative noise spike greater than -A, the correlator integral drops below zero, causing the receiver to decide 0 instead of 1."
+  },
+  {
+    "keywords": ["practical", "which practical", "syllabus"],
+    "answer": "SignalForge maps directly to all 8 Practical syllabus experiments: 1) Wired LAN & Ping, 2) Media Transmission Speed, 3) Binary/Decimal, 4) Keyboard ASCII, 5) AM/FM/PM, 6) ASK/FSK/PSK, 7) PCM Sampling/Quantization, and 8) Multiplexing (TDM/FDM/STDM)."
+  },
+  {
+    "keywords": ["psk", "bpsk", "phase shift keying"],
+    "stage": "modulate",
+    "answer": "Phase Shift Keying (BPSK) modulates bits by reversing the carrier wave phase: bit 1 uses +cos(2πfc t) while bit 0 uses -cos(2πfc t). BPSK is the most power-efficient binary modulation scheme, requiring ~3 dB less power than ASK or FSK for the same BER."
+  },
+  {
+    "keywords": ["ask", "ook", "amplitude shift keying"],
+    "stage": "modulate",
+    "answer": "Amplitude Shift Keying (ASK / On-Off Keying) transmits carrier wave energy for bit 1 and zero energy (silence) for bit 0. It is simple to detect with an envelope detector but is sensitive to amplitude noise."
+  },
+  {
+    "keywords": ["fsk", "frequency shift keying"],
+    "stage": "modulate",
+    "answer": "Frequency Shift Keying (FSK) represents bits using two distinct orthogonal carrier frequencies: e.g. f0 for bit 0 and f1 for bit 1. The receiver compares energy at both frequencies and chooses the higher one."
+  },
+  {
+    "keywords": ["am", "amplitude modulation"],
+    "answer": "Amplitude Modulation (AM) varies the amplitude of an RF carrier wave in proportion to the instantaneous message signal m(t): s(t) = [1 + m·m(t)]·cos(2πfc t). It is recovered using a simple diode envelope detector."
+  },
+  {
+    "keywords": ["fm", "frequency modulation"],
+    "answer": "Frequency Modulation (FM) varies the instantaneous carrier frequency in proportion to the message amplitude. FM provides superior noise immunity over AM because noise primarily corrupts amplitude, which FM limiters discard."
+  },
+  {
+    "keywords": ["pm", "phase modulation"],
+    "answer": "Phase Modulation (PM) varies the carrier phase directly with the message amplitude: s(t) = cos(2πfc t + kp·m(t)). PM is closely related to FM (frequency is the derivative of phase)."
+  },
+  {
+    "keywords": ["pcm", "pulse code modulation", "sampling", "quantization"],
+    "answer": "Pulse Code Modulation (PCM) converts continuous analog signals into digital bitstreams through three steps: 1) Sampling at rate fs ≥ 2fm; 2) Quantizing amplitudes into discrete levels; 3) Encoding quantized levels as binary words."
+  },
+  {
+    "keywords": ["nyquist", "sampling theorem", "aliasing"],
+    "answer": "Nyquist's Sampling Theorem states that a bandlimited signal with maximum frequency fm can be perfectly reconstructed if sampled at a rate fs ≥ 2fm. Sampling below this rate causes aliasing, where high frequencies masquerade as low frequencies."
+  },
+  {
+    "keywords": ["snr_q", "6.02", "quantization noise"],
+    "answer": "Theoretical quantization Signal-to-Noise Ratio is given by SNR_q ≈ 6.02·n + 1.76 dB, where n is the number of quantization bits. Each extra bit adds ~6 dB of dynamic range while doubling transmission bandwidth."
+  },
+  {
+    "keywords": ["tdm", "time division multiplexing"],
+    "answer": "Time-Division Multiplexing (TDM) divides channel time into fixed, synchronized time slots arranged in frames. Each user is allocated an exclusive, dedicated slot in every frame cycle."
+  },
+  {
+    "keywords": ["fdm", "frequency division multiplexing"],
+    "answer": "Frequency-Division Multiplexing (FDM) divides total channel bandwidth into separate frequency sub-bands, each modulated by a distinct user carrier. Guard bands are inserted between sub-bands to prevent crosstalk."
+  },
+  {
+    "keywords": ["stdm", "statistical multiplexing", "statistical tdm"],
+    "answer": "Statistical TDM dynamically allocates slots on demand only to currently active users, rather than reserving empty slots for idle lines. Each slot includes an address header tag, improving channel utilization by up to 100%."
+  },
+  {
+    "keywords": ["guard band", "guard"],
+    "answer": "A guard band is an unused frequency buffer placed between adjacent channels in FDM systems to prevent signal overlap and allow realistic analog bandpass filters to separate channels without distortion."
+  },
+  {
+    "keywords": ["how images sent", "image transmission", "photo"],
+    "answer": "Images are 2D grids of pixel brightness values (spatial PCM). Each pixel is quantized to 2, 4, or 8 bits. The image is transmitted as a stream of packets—typically one packet per row with its own CRC checksum and FEC protection."
+  },
+  {
+    "keywords": ["psnr", "peak signal to noise ratio"],
+    "answer": "Peak Signal-to-Noise Ratio (PSNR) evaluates visual fidelity between original and received pictures in decibels (dB). Higher PSNR means less visible noise. Values above 30 dB indicate good quality, and infinity (99.9 dB) denotes zero error."
+  },
+  {
+    "keywords": ["video", "frames", "fps"],
+    "answer": "Video is a temporal sequence of image frames played at high speed (e.g. 24–60 fps, or 4 fps in our educational simulation) to exploit persistence of vision. Each frame travels as an independent packet burst."
+  },
+  {
+    "keywords": ["ping", "rtt", "round trip time", "latency"],
+    "answer": "Ping measures Round-Trip Time (RTT)—the elapsed duration for an ICMP/HTTP packet to travel from sender to destination and back. Lower latency means faster responsiveness."
+  },
+  {
+    "keywords": ["jitter", "mdev"],
+    "answer": "Jitter is the statistical variation or instability in packet arrival latency. In real-time voice and video streams, high jitter causes buffering delays and audio stutter."
+  },
+  {
+    "keywords": ["throughput", "bandwidth", "speed", "mbit"],
+    "answer": "Bandwidth is the maximum theoretical capacity of a channel, while throughput is the actual measured data transfer rate achieved under real operating conditions, measured in Megabits per second (Mbit/s)."
+  },
+  {
+    "keywords": ["latency vs bandwidth", "difference between latency and bandwidth"],
+    "answer": "Bandwidth is the width of the pipe (how much data can flow per second), while latency is the length of the pipe (how long it takes for a single bit to travel from one end to the other)."
+  },
+  {
+    "keywords": ["switch", "mac", "layer 2", "bridge"],
+    "answer": "A Layer-2 switch connects devices on a Local Area Network (LAN). It inspects the source MAC address of incoming frames to learn which device resides on which port, forwarding future packets directly instead of flooding."
+  },
+  {
+    "keywords": ["webassembly", "wasm", "c", "why wasm"],
+    "answer": "WebAssembly (WASM) enables native-speed C/C++ execution inside web browsers without plugins. In SignalForge, the bit-level engine (XOR, CRC-8, Hamming) is compiled from pure C into a 2.6 KB standalone WASM binary."
+  },
+  {
+    "keywords": ["real vs simulated", "what is real", "honest"],
+    "answer": "REAL: The WebAssembly C engine, actual keyboard DOM events, real measured ping latency, real 2 MB download speed, synthesized Web Audio tones, and inter-tab BroadcastChannel communication. SIMULATED: The AWGN noise generation, RF carrier propagation models, and LAN switch animation."
+  },
+  {
+    "keywords": ["why software simulation", "why not real radio"],
+    "answer": "Real radio frequency transmission requires physical SDR antennas and FCC licenses. Software simulation gives students direct visibility into the mathematical changes occurring at every single wire and sample level inside the computer."
+  },
+  {
+    "keywords": ["two-tab", "broadcastchannel", "inter-tab"],
+    "answer": "The Two-Tab Link uses the HTML5 BroadcastChannel API to transmit modulated, noisy Float32Array sample buffers between separate browser tabs, simulating a real transmitter and receiver station pair."
+  },
+  {
+    "keywords": ["q function", "q-function", "erfc"],
+    "answer": "The Gaussian Q-function Q(x) calculates the tail probability of a standard normal distribution. In communication theory, Q(√(2·Eb/N0)) gives the exact theoretical BER for coherent BPSK in AWGN channels."
+  },
+  {
+    "keywords": ["syndrome", "syndrome decoding"],
+    "answer": "In linear block codes, the syndrome s = [s1 s2 s3] is computed from parity-check equations on received bits. If s = 0, no detectable error occurred. If s ≠ 0, its integer value points directly to the bit position that flipped."
+  },
+  {
+    "keywords": ["parity", "parity bit"],
+    "answer": "A parity bit is an extra bit added to a binary code to ensure the total number of 1-bits is even (even parity) or odd (odd parity). It provides simple single-bit error detection."
+  },
+  {
+    "keywords": ["shannon", "channel capacity", "shannon-hartley"],
+    "answer": "Shannon's Channel Capacity theorem C = B·log2(1 + SNR) defines the theoretical upper limit of error-free information transfer over a noisy channel of bandwidth B and signal-to-noise ratio SNR."
+  },
+  {
+    "keywords": ["co1", "co2", "co3", "course outcomes"],
+    "answer": "Course Outcomes: CO1) Understand physical transmission media and channels; CO2) Master binary, decimal, and ASCII conversions; CO3) Analyze analog and digital modulation techniques and measure Bit Error Rates."
+  }
+]

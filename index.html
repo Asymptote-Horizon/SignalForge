@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SignalForge — Virtual Communication Lab</title>
+  <meta name="description" content="A virtual laboratory where engineering students watch data travel from keyboard to receiver across 8 stages of digital communication.">
+  <meta name="theme-color" content="#0a0f1e">
+  <!-- Inline SVG Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,2 30,10 30,22 16,30 2,22 2,10' fill='%23111a33' stroke='%2322d3ee' stroke-width='2'/%3E%3Cpath d='M8 16 Q 12 8, 16 16 T 24 16' fill='none' stroke='%23a78bfa' stroke-width='2.5'/%3E%3C/svg%3E">
+  
+  <!-- Google Fonts: Inter and JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+  <div id="sf-app">
+    <!-- Top Global Header (visible on post-login screens except tour) -->
+    <header class="sf-top-navbar" id="sf-top-navbar" style="display:none;">
+      <a href="#/lab/pipeline" class="sf-nav-brand">
+        <svg class="sf-logo-icon" viewBox="0 0 32 32" width="28" height="28">
+          <polygon points="16,2 30,10 30,22 16,30 2,22 2,10" fill="#111a33" stroke="#22d3ee" stroke-width="2"/>
+          <path d="M8 16 Q 12 8, 16 16 T 24 16" fill="none" stroke="#a78bfa" stroke-width="2.5"/>
+        </svg>
+        <div class="sf-brand-title">SignalForge <span id="sf-nav-lab-title">Lab</span></div>
+      </a>
+
+      <div class="sf-nav-tools">
+        <div class="sf-engine-badge" id="sf-engine-badge" title="Bit-level processing runs in a C program compiled to WebAssembly.">
+          <span>⚙</span> <span id="sf-engine-text">Engine: Initializing...</span>
+        </div>
+        <a href="#/syllabus" class="sf-btn sf-btn-ghost sf-btn-sm" id="sf-nav-syllabus">Syllabus Map</a>
+        <a href="#/pick" class="sf-btn sf-btn-outline sf-btn-sm" id="sf-nav-replay">Replay Tour</a>
+        <div class="sf-user-chip" id="sf-user-chip">👤 <span id="sf-nav-user-name">Guest</span></div>
+        <button class="sf-btn sf-btn-ghost sf-btn-sm sf-accent-err" id="sf-nav-logout">Log out</button>
+      </div>
+    </header>
+
+    <!-- SCREEN 1: LOGIN (#/login) -->
+    <section class="sf-screen sf-login-screen" id="screen-login">
+      <canvas class="sf-canvas-bg" id="sf-login-canvas"></canvas>
+      <div class="sf-login-card">
+        <div class="sf-login-brand">
+          <svg viewBox="0 0 48 48" width="56" height="56">
+            <polygon points="24,3 45,15 45,33 24,45 3,33 3,15" fill="#16213f" stroke="#22d3ee" stroke-width="2.5"/>
+            <path d="M11 24 Q 17 12, 24 24 T 37 24" fill="none" stroke="#a78bfa" stroke-width="3"/>
+          </svg>
+          <h1 class="sf-login-title">Signal<span>Forge</span></h1>
+          <p class="sf-login-tagline">A virtual lab where you watch data travel.</p>
+        </div>
+
+        <form id="sf-login-form" novalidate>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="sf-login-username">Username</label>
+            <input type="text" id="sf-login-username" class="sf-input" placeholder="e.g. student" autocomplete="username">
+            <div class="sf-inline-error" id="sf-err-username">Username cannot be empty.</div>
+          </div>
+
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="sf-login-password">Password</label>
+            <input type="password" id="sf-login-password" class="sf-input" placeholder="••••••••" autocomplete="current-password">
+            <div class="sf-inline-error" id="sf-err-password">Password must be at least 4 characters.</div>
+          </div>
+
+          <button type="submit" class="sf-btn sf-btn-primary sf-btn-lg" style="width: 100%;">Enter the Lab →</button>
+          <p class="sf-login-hint">Demo mode: use any username and a password with 4+ characters.</p>
+          <button type="button" class="sf-login-guest-link" id="sf-login-guest">Continue as guest</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: WELCOME (#/welcome) -->
+    <section class="sf-screen sf-welcome-screen" id="screen-welcome">
+      <div class="sf-welcome-card">
+        <h1 class="sf-welcome-heading">Welcome, <span id="sf-welcome-name" class="sf-accent-cyan">Student</span> 👋</h1>
+        <p class="sf-welcome-sub">In 60 seconds you can watch a message travel through a whole communication system. Want to run a guided example?</p>
+        <div class="sf-welcome-btn-row">
+          <a href="#/pick" class="sf-btn sf-btn-glowing sf-btn-lg">Yes, show me →</a>
+          <a href="#/lab/pipeline" class="sf-btn sf-btn-outline sf-btn-lg">No, let me explore</a>
+        </div>
+        <p class="sf-welcome-note">You can replay this tour any time from the top bar.</p>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: PICK AN EXAMPLE (#/pick) -->
+    <section class="sf-screen sf-pick-screen" id="screen-pick">
+      <div class="sf-pick-container">
+        <h1 class="sf-pick-heading">What should we send?</h1>
+        <p class="sf-pick-sub">Select an example payload to trace through all 8 stages of transmission.</p>
+
+        <div class="sf-pick-cards-grid">
+          <!-- Card A: Text Message -->
+          <div class="sf-pick-card" id="sf-pick-text">
+            <div class="sf-pick-card-icon">
+              <svg viewBox="0 0 24 24" width="48" height="48" fill="#22d3ee">
+                <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
+              </svg>
+            </div>
+            <h2 class="sf-pick-card-title">Text Message</h2>
+            <p class="sf-pick-card-sub">Sends <code>HELLO</code> (5 letters, 40 bits of information)</p>
+          </div>
+
+          <!-- Card B: Photo -->
+          <div class="sf-pick-card" id="sf-pick-image">
+            <div class="sf-pick-card-icon">
+              <canvas id="sf-pick-thumb" width="48" height="48" style="width:48px;height:48px;border-radius:8px;"></canvas>
+            </div>
+            <h2 class="sf-pick-card-title">Photo</h2>
+            <p class="sf-pick-card-sub">A 32×32 picture, 4096 bits of information</p>
+          </div>
+        </div>
+
+        <a href="#/welcome" class="sf-pick-back">← Back to welcome</a>
+      </div>
+    </section>
+
+    <!-- SCREEN 4: GUIDED TOUR (#/tour) -->
+    <section class="sf-screen" id="screen-tour">
+      <div id="sf-tour-mount-point" style="width: 100%; height: 100%;"></div>
+    </section>
+
+    <!-- SCREEN 5: TOUR END (#/tour-end) -->
+    <section class="sf-screen sf-tour-end-screen" id="screen-tour-end">
+      <div class="sf-tour-end-card">
+        <h1 class="sf-tour-end-heading">You just followed data from your keyboard to the receiver.</h1>
+        <p class="sf-tour-end-sub" id="sf-tour-end-sub">The complete transmission pipeline successfully encoded, encrypted, protected, modulated, and recovered the data.</p>
+
+        <div class="sf-end-summary-row" id="sf-end-summary-row">
+          <div class="sf-end-col">
+            <span class="sf-end-lbl">Sent</span>
+            <span class="sf-end-val sf-accent-cyan" id="sf-end-sent">HELLO</span>
+          </div>
+          <div class="sf-end-col">
+            <span class="sf-end-lbl">Received</span>
+            <span class="sf-end-val sf-accent-ok" id="sf-end-received">HELLO</span>
+          </div>
+          <div class="sf-end-col">
+            <span class="sf-end-lbl">BER (raw)</span>
+            <span class="sf-end-val" id="sf-end-rawber">4.8%</span>
+          </div>
+          <div class="sf-end-col">
+            <span class="sf-end-lbl">Errors Fixed</span>
+            <span class="sf-end-val sf-accent-ok" id="sf-end-fixed">4 blocks</span>
+          </div>
+          <div class="sf-end-col">
+            <span class="sf-end-lbl">CRC</span>
+            <span class="sf-end-val sf-accent-ok" id="sf-end-crc">OK ✔</span>
+          </div>
+        </div>
+
+        <div class="sf-end-btn-row">
+          <a href="#/lab/pipeline" class="sf-btn sf-btn-primary sf-btn-lg">Start exploring →</a>
+          <a href="#/pick" class="sf-btn sf-btn-outline sf-btn-lg" id="sf-end-replay-btn">Replay the tour</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 6: EXPLORE DASHBOARD (#/lab/* and #/syllabus) -->
+    <section class="sf-screen" id="screen-lab">
+      <div class="sf-dashboard-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sf-sidebar">
+          <a href="#/lab/pipeline" class="sf-sidebar-link active" data-lab="pipeline">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/>
+            </svg>
+            <span>Pipeline Lab</span>
+          </a>
+
+          <a href="#/lab/media" class="sf-sidebar-link" data-lab="media">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+            </svg>
+            <span>Media Lab</span>
+          </a>
+
+          <a href="#/lab/signal" class="sf-sidebar-link" data-lab="signal">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M2 12c2.5-6 5.5-6 8 0s5.5 6 8 0 5.5-6 8 0"/>
+            </svg>
+            <span>Signal Lab</span>
+          </a>
+
+          <a href="#/lab/network" class="sf-sidebar-link" data-lab="network">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            <span>Network Lab</span>
+          </a>
+
+          <a href="#/lab/mux" class="sf-sidebar-link" data-lab="mux">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
+            </svg>
+            <span>Multiplexing Lab</span>
+          </a>
+
+          <a href="#/lab/basics" class="sf-sidebar-link" data-lab="basics">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+            </svg>
+            <span>Basics Lab</span>
+          </a>
+        </aside>
+
+        <!-- Lab Content Area -->
+        <main class="sf-lab-main" id="sf-lab-content-area">
+          <!-- Dynamic lab content mounts here -->
+        </main>
+      </div>
+    </section>
+
+    <!-- SYLLABUS & SELF-TEST MODAL / SCREEN CONTENT -->
+    <div class="sf-modal-backdrop" id="sf-syllabus-modal" style="display:none;">
+      <div class="sf-modal-card" style="max-width: 860px; max-height: 90vh; overflow-y: auto;">
+        <div class="sf-modal-header">
+          <div>
+            <h3 class="sf-modal-title">Data Communication Lab Syllabus & Diagnostics</h3>
+            <p class="sf-modal-subtitle">Curriculum mapping, verification self-tests, and engine performance benchmarks.</p>
+          </div>
+          <button class="sf-btn sf-btn-ghost sf-btn-sm" id="sf-syllabus-close">✕</button>
+        </div>
+        <div class="sf-modal-body">
+          <!-- Real vs Simulated Panel -->
+          <div class="sf-panel sf-mb-4" style="margin-bottom: 20px;">
+            <div class="sf-panel-header"><h4 class="sf-panel-title">Real vs Simulated System Architecture</h4></div>
+            <div class="sf-panel-body" style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div>
+                <h5 class="sf-accent-ok" style="font-weight:700; margin-bottom: 6px;">REAL (Actual Hardware/Execution):</h5>
+                <ul style="padding-left: 20px; font-size: 13px; line-height: 1.6; color: var(--text);">
+                  <li>WebAssembly bit-level processing (C binary compiled to WASM)</li>
+                  <li>Live bit calculations (CRC-8 0x07, Hamming(7,4) syndromic decode)</li>
+                  <li>Actual audio output synthesized via Web Audio API</li>
+                  <li>Real measured ping and download speed tests (Network Lab)</li>
+                  <li>Actual keyboard DOM events & ASCII codes (Basics Lab)</li>
+                </ul>
+              </div>
+              <div>
+                <h5 class="sf-accent-warn" style="font-weight:700; margin-bottom: 6px;">SIMULATED (Software Models):</h5>
+                <ul style="padding-left: 20px; font-size: 13px; line-height: 1.6; color: var(--text);">
+                  <li>Wireless/Cable channel noise (Software AWGN via Box-Muller)</li>
+                  <li>RF carrier propagation (Discrete 20-sample digital DSP model)</li>
+                  <li>Layer-2 LAN Switch MAC address learning animation</li>
+                  <li>Login session (Client demo mode)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Syllabus Mapping Table -->
+          <div class="sf-panel" style="margin-bottom: 20px;">
+            <div class="sf-panel-header"><h4 class="sf-panel-title">Practical Syllabus Alignment (Practicals 1–8)</h4></div>
+            <div class="sf-panel-body" style="padding: 0;">
+              <table class="sf-ascii-table">
+                <thead><tr><th>Practical</th><th>Syllabus Topic</th><th>SignalForge Lab / Stage</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Practical 1</strong></td><td>Wired LAN + PING Setup</td><td>Network Lab (Live Ping)</td><td><a href="#/lab/network" class="sf-btn sf-btn-xs sf-btn-cyan">Open Network Lab</a></td></tr>
+                  <tr><td><strong>Practical 2</strong></td><td>Transmission Speed & Media</td><td>Network Lab (Throughput)</td><td><a href="#/lab/network" class="sf-btn sf-btn-xs sf-btn-cyan">Open Network Lab</a></td></tr>
+                  <tr><td><strong>Practical 3</strong></td><td>Binary ↔ Decimal Conversion</td><td>Basics Lab & Encode Stage</td><td><a href="#/lab/basics" class="sf-btn sf-btn-xs sf-btn-cyan">Open Basics Lab</a></td></tr>
+                  <tr><td><strong>Practical 4</strong></td><td>Keyboard ASCII Codes</td><td>Basics Lab & Encode Stage</td><td><a href="#/lab/basics" class="sf-btn sf-btn-xs sf-btn-cyan">Open Basics Lab</a></td></tr>
+                  <tr><td><strong>Practical 5</strong></td><td>Analog Modulation (AM/FM/PM)</td><td>Signal Lab</td><td><a href="#/lab/signal" class="sf-btn sf-btn-xs sf-btn-cyan">Open Signal Lab</a></td></tr>
+                  <tr><td><strong>Practical 6</strong></td><td>Digital Modulation (ASK/FSK/PSK)</td><td>Pipeline Lab (Stages 5 & 7)</td><td><a href="#/lab/pipeline" class="sf-btn sf-btn-xs sf-btn-cyan">Open Pipeline Lab</a></td></tr>
+                  <tr><td><strong>Practical 7</strong></td><td>Pulse Code Modulation (PCM)</td><td>Signal Lab & Media Lab</td><td><a href="#/lab/signal" class="sf-btn sf-btn-xs sf-btn-cyan">Open Signal Lab</a></td></tr>
+                  <tr><td><strong>Practical 8</strong></td><td>Multiplexing (FDM/TDM/STDM)</td><td>Multiplexing Lab</td><td><a href="#/lab/mux" class="sf-btn sf-btn-xs sf-btn-cyan">Open Multiplexing Lab</a></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Self-Tests & Benchmarks -->
+          <div class="sf-panel">
+            <div class="sf-panel-header"><h4 class="sf-panel-title">Diagnostic Verification & Engine Benchmark</h4></div>
+            <div class="sf-panel-body">
+              <div style="display:flex; gap: 12px; margin-bottom: 14px;">
+                <button class="sf-btn sf-btn-primary sf-btn-sm" id="sf-btn-run-selftest">Run Section 5.5 Math Self-Test (100k bits)</button>
+                <button class="sf-btn sf-btn-outline sf-btn-sm" id="sf-btn-run-benchmark">Benchmark: WASM vs JS Speed (1M bits)</button>
+              </div>
+              <div id="sf-selftest-output" style="background:#0d1527; padding:12px; border-radius:8px; font-family:var(--font-mono); font-size:12px; min-height:80px; white-space:pre-wrap;">Click a diagnostic test above to evaluate accuracy against mathematical theory.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main JavaScript ES Module Bootstrapper -->
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
