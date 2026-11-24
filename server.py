@@ -29,7 +29,7 @@ mimetypes.add_type("application/wasm", ".wasm", True)
 mimetypes.add_type("application/json", ".json", True)
 mimetypes.add_type("image/svg+xml", ".svg", True)
 
-PORT = 8000
+PORT = int(os.environ.get("PORT", 8000))
 WORKSPACE_DIR = Path(__file__).resolve().parent
 
 # OpenRouter AI Configuration (Loads from environment or local .env file)
@@ -48,6 +48,121 @@ def get_openrouter_key():
     return ""
 
 OPENROUTER_API_KEY = get_openrouter_key()
+
+# Database Layer: Supports Neon Postgres (via DATABASE_URL) with seamless local JSON fallback
+def get_database_url():
+    if "DATABASE_URL" in os.environ and os.environ["DATABASE_URL"]:
+        return os.environ["DATABASE_URL"]
+    env_file = WORKSPACE_DIR / ".env"
+    if env_file.exists():
+        try:
+            with open(env_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    if line.strip().startswith("DATABASE_URL="):
+                        return line.strip().split("=", 1)[1].strip().strip('"').strip("'")
+        except Exception:
+            pass
+    return ""
+
+DATABASE_URL = get_database_url()
+
+def get_neon_conn():
+    if not DATABASE_URL:
+        return None
+    try:
+        import psycopg2
+        return psycopg2.connect(DATABASE_URL)
+    except Exception:
+        return None
+
+def init_neon_db():
+    conn = get_neon_conn()
+    if not conn:
+        return
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS signalforge_projects (
+                    id VARCHAR(100) PRIMARY KEY,
+                    data JSONB NOT NULL,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
+            conn.commit()
+            cur.execute("SELECT COUNT(*) FROM signalforge_projects;")
+            if cur.fetchone()[0] == 0:
+                db_path = WORKSPACE_DIR / "data" / "projects_db.json"
+                if db_path.exists():
+                    with open(db_path, "r", encoding="utf-8") as f:
+                        for p in json.load(f):
+                            cur.execute(
+                                "INSERT INTO signalforge_projects (id, data) VALUES (%s, %s) ON CONFLICT DO NOTHING;",
+                                (p["id"], json.dumps(p))
+                            )
+                        conn.commit()
+    except Exception as e:
+        print(f"Neon DB init notice: {e}")
+    finally:
+        conn.close()
+
+def db_load_projects():
+    conn = get_neon_conn()
+    if conn:
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT data FROM signalforge_projects ORDER BY created_at ASC;")
+                rows = cur.fetchall()
+                if rows:
+                    return [r[0] if isinstance(r[0], dict) else json.loads(r[0]) for r in rows]
+        except Exception as e:
+            print(f"Neon load notice: {e}")
+        finally:
+            conn.close()
+    
+    # Fallback to local JSON file
+    db_path = WORKSPACE_DIR / "data" / "projects_db.json"
+    if db_path.exists():
+        try:
+            with open(db_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return []
+    return []
+
+def db_save_project(proj):
+    conn = get_neon_conn()
+    if conn:
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO signalforge_projects (id, data) VALUES (%s, %s)
+                    ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data;
+                    """,
+                    (proj["id"], json.dumps(proj))
+                )
+                conn.commit()
+        except Exception as e:
+            print(f"Neon save notice: {e}")
+        finally:
+            conn.close()
+
+    # Also keep local JSON file in sync
+    db_path = WORKSPACE_DIR / "data" / "projects_db.json"
+    try:
+        projects = []
+        if db_path.exists():
+            with open(db_path, "r", encoding="utf-8") as f:
+                projects = json.load(f)
+        idx = next((i for i, p in enumerate(projects) if p["id"] == proj["id"]), -1)
+        if idx >= 0:
+            projects[idx] = proj
+        else:
+            projects.append(proj)
+        with open(db_path, "w", encoding="utf-8") as f:
+            json.dump(projects, f, indent=2)
+    except Exception:
+        pass
 
 def query_openrouter_llm(user_prompt, system_context=""):
     try:
@@ -254,7 +369,7 @@ def compile_and_run_cpp(code_str):
     duration_ms = round((time.time() - t_start) * 1000, 1)
     return {
         "success": success,
-        "compiler": "SignalForge Integrated C++ WebAssembly Engine",
+        "compiler": " C++ WebAssembly",
         "stdout": stdout,
         "stderr": stderr,
         "exitCode": 0 if success else 1,
@@ -348,16 +463,11 @@ class SignalForgeHandler(http.server.SimpleHTTPRequestHandler):
 
         # API: Get student projects
         if self.path == "/api/projects":
-            db_path = WORKSPACE_DIR / "data" / "projects_db.json"
-            if db_path.exists():
-                with open(db_path, "r", encoding="utf-8") as f:
-                    content = f.read()
-            else:
-                content = "[]"
+            projects = db_load_projects()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(content.encode("utf-8"))
+            self.wfile.write(json.dumps(projects).encode("utf-8"))
             return
 
         # API: Get resources feed
@@ -441,15 +551,6 @@ class SignalForgeHandler(http.server.SimpleHTTPRequestHandler):
 
         # API: Submit New Student Project
         if self.path == "/api/projects":
-            db_path = WORKSPACE_DIR / "data" / "projects_db.json"
-            projects = []
-            if db_path.exists():
-                try:
-                    with open(db_path, "r", encoding="utf-8") as f:
-                        projects = json.load(f)
-                except Exception:
-                    projects = []
-            
             new_proj = {
                 "id": f"proj-{int(time.time()*1000)}",
                 "title": payload.get("title", "Untitled Student Project"),
@@ -464,9 +565,7 @@ class SignalForgeHandler(http.server.SimpleHTTPRequestHandler):
                 "createdAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 "discussions": []
             }
-            projects.append(new_proj)
-            with open(db_path, "w", encoding="utf-8") as f:
-                json.dump(projects, f, indent=2)
+            db_save_project(new_proj)
 
             self.send_response(201)
             self.send_header("Content-Type", "application/json")
@@ -481,15 +580,7 @@ class SignalForgeHandler(http.server.SimpleHTTPRequestHandler):
             message = payload.get("message", "")
             reply_to_id = payload.get("replyToId") # optional
 
-            db_path = WORKSPACE_DIR / "data" / "projects_db.json"
-            projects = []
-            if db_path.exists():
-                try:
-                    with open(db_path, "r", encoding="utf-8") as f:
-                        projects = json.load(f)
-                except Exception:
-                    projects = []
-
+            projects = db_load_projects()
             target_proj = next((p for p in projects if p["id"] == project_id), None)
             if not target_proj:
                 self.send_response(404)
@@ -529,34 +620,30 @@ class SignalForgeHandler(http.server.SimpleHTTPRequestHandler):
                 }
                 target_proj["discussions"].append(disc_obj)
 
-            with open(db_path, "w", encoding="utf-8") as f:
-                json.dump(projects, f, indent=2)
+            db_save_project(target_proj)
 
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(json.dumps({"success": True, "projects": projects}).encode("utf-8"))
+            self.wfile.write(json.dumps({"success": True, "projects": db_load_projects()}).encode("utf-8"))
             return
 
         # API: Like a Student Project
         if self.path == "/api/projects/like":
             project_id = payload.get("projectId")
-            db_path = WORKSPACE_DIR / "data" / "projects_db.json"
-            projects = []
-            if db_path.exists():
-                try:
-                    with open(db_path, "r", encoding="utf-8") as f:
-                        projects = json.load(f)
-                except Exception:
-                    projects = []
-
+            projects = db_load_projects()
             target_proj = next((p for p in projects if p["id"] == project_id), None)
             likes_count = 1
             if target_proj:
                 target_proj["likes"] = target_proj.get("likes", 0) + 1
                 likes_count = target_proj["likes"]
-                with open(db_path, "w", encoding="utf-8") as f:
-                    json.dump(projects, f, indent=2)
+                db_save_project(target_proj)
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"success": True, "likes": likes_count}).encode("utf-8"))
+            return
 
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
@@ -624,6 +711,8 @@ class SignalForgeHandler(http.server.SimpleHTTPRequestHandler):
 
 def run_server():
     socketserver.TCPServer.allow_reuse_address = True
+    if DATABASE_URL:
+        init_neon_db()
     with socketserver.TCPServer(("", PORT), SignalForgeHandler) as httpd:
         print(f"SignalForge Backend Server active at http://localhost:{PORT}")
         sys.stdout.flush()
