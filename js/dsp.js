@@ -268,6 +268,9 @@ export const DSP = {
    * ASK: Q(sqrt(gamma / 2))
    */
   theoreticalBER(ebn0dB, modulation = 'PSK') {
+    if (typeof ebn0dB === 'string' && typeof modulation === 'number') {
+      const tmp = ebn0dB; ebn0dB = modulation; modulation = tmp;
+    }
     const gamma = Math.pow(10, ebn0dB / 10.0);
     if (modulation === 'PSK') {
       return this.qFunc(Math.sqrt(2.0 * gamma));

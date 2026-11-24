@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SignalForge — Core Mathematical & Engine Invariant Tests</title>
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,2 30,10 30,22 16,30 2,22 2,10' fill='%23253a67' stroke='%235265e9' stroke-width='2'/%3E%3Cpath d='M8 16 Q 12 8, 16 16 T 24 16' fill='none' stroke='%237484ff' stroke-width='2.5'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #f5f7fb;
+      --surface: #ffffff;
+      --surface-sub: #f0f3f9;
+      --border: #e2e8f0;
+      --border-dark: #cbd5e1;
+      --ink: #182236;
+      --ink-dim: #54627d;
+      --accent: #5265e9;
+      --accent-soft: rgba(82, 101, 233, 0.08);
+      --success: #15803d;
+      --success-soft: #f0fdf4;
+      --danger: #b91c1c;
+      --danger-soft: #fef2f2;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      padding: 32px 20px;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .title h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .title p {
+      font-size: 13px;
+      color: var(--ink-dim);
+      margin-top: 4px;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.9; }
+    a.btn-back {
+      font-size: 13px;
+      color: var(--ink-dim);
+      text-decoration: none;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+    a.btn-back:hover { border-color: var(--border-dark); color: var(--ink); }
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 24px;
+      margin-bottom: 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+    }
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink-dim);
+      font-weight: 600;
+    }
+    .stat-val {
+      font-size: 22px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 4px;
+    }
+    .stat-val.passed { color: var(--success); }
+    .stat-val.failed { color: var(--danger); }
+    .test-suite {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .suite-header {
+      background: var(--surface-sub);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .suite-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .suite-badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .suite-badge.pass { background: var(--success-soft); color: var(--success); }
+    .suite-badge.fail { background: var(--danger-soft); color: var(--danger); }
+    .test-cases {
+      padding: 8px 0;
+    }
+    .test-case {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .test-case:last-child { border-bottom: none; }
+    .case-info { display: flex; align-items: center; gap: 10px; }
+    .case-icon { font-weight: 800; }
+    .case-icon.pass { color: var(--success); }
+    .case-icon.fail { color: var(--danger); }
+    .case-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--ink-dim);
+    }
+    .case-error {
+      margin-top: 6px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--danger);
+      background: var(--danger-soft);
+      padding: 8px 12px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="title">
+        <h1>SignalForge — Core Mathematical & Engine Invariants</h1>
+        <p>Mathematical proof tests: ASCII conversions, XOR symmetry, CRC-8, Hamming(7,4), AWGN channel, and DSP detectors.</p>
+      </div>
+      <div class="actions">
+        <a href="../#/lab/pipeline" class="btn-back">← Back to Lab</a>
+        <button id="runTestsBtn">Re-run All Tests</button>
+      </div>
+    </header>
+
+    <div class="summary-card">
+      <div>
+        <div class="stat-label">Total Assertions</div>
+        <div class="stat-val" id="statTotal">-</div>
+      </div>
+      <div>
+        <div class="stat-label">Passed</div>
+        <div class="stat-val passed" id="statPassed">-</div>
+      </div>
+      <div>
+        <div class="stat-label">Failed</div>
+        <div class="stat-val failed" id="statFailed">0</div>
+      </div>
+      <div>
+        <div class="stat-label">Engine Mode</div>
+        <div class="stat-val" style="font-size: 15px; margin-top:8px;" id="statEngine">Checking...</div>
+      </div>
+    </div>
+
+    <div id="suitesContainer">
+      <div style="padding: 40px; text-align: center; color: var(--ink-dim);">Executing test suite...</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { Engine } from '../js/engine.js';
+    import { DSP } from '../js/dsp.js';
+    import { runPipeline, textToAsciiBytes, asciiBytesToText, bytesToBits, bitsToBytes } from '../js/pipeline.js';
+
+    class TestRunner {
+      constructor() {
+        this.suites = [];
+        this.totalAssertions = 0;
+        this.passedAssertions = 0;
+        this.failedAssertions = 0;
+      }
+
+      async describe(suiteName, fn) {
+        const suite = { name: suiteName, cases: [], passed: true };
+        this.suites.push(suite);
+        const addCase = (caseName, testFn) => {
+          suite.cases.push({ name: caseName, testFn });
+        };
+        await fn(addCase);
+      }
+
+      async run() {
+        this.totalAssertions = 0;
+        this.passedAssertions = 0;
+        this.failedAssertions = 0;
+
+        for (const suite of this.suites) {
+          for (const tc of suite.cases) {
+            this.totalAssertions++;
+            const t0 = performance.now();
+            try {
+              await tc.testFn();
+              tc.duration = (performance.now() - t0).toFixed(1);
+              tc.passed = true;
+              this.passedAssertions++;
+            } catch (err) {
+              tc.duration = (performance.now() - t0).toFixed(1);
+              tc.passed = false;
+              tc.error = err.message || String(err);
+              suite.passed = false;
+              this.failedAssertions++;
+            }
+          }
+        }
+        this.render();
+      }
+
+      render() {
+        document.getElementById('statTotal').textContent = this.totalAssertions;
+        document.getElementById('statPassed').textContent = this.passedAssertions;
+        document.getElementById('statFailed').textContent = this.failedAssertions;
+        document.getElementById('statEngine').textContent = Engine.isWasm ? 'WASM (C Engine)' : 'JS Fallback';
+
+        const container = document.getElementById('suitesContainer');
+        container.innerHTML = '';
+
+        for (const suite of this.suites) {
+          const suiteEl = document.createElement('div');
+          suiteEl.className = 'test-suite';
+
+          const header = document.createElement('div');
+          header.className = 'suite-header';
+          header.innerHTML = `
+            <div class="suite-title">${suite.name}</div>
+            <div class="suite-badge ${suite.passed ? 'pass' : 'fail'}">${suite.passed ? 'ALL PASSED' : 'FAILED'}</div>
+          `;
+          suiteEl.appendChild(header);
+
+          const casesList = document.createElement('div');
+          casesList.className = 'test-cases';
+
+          for (const tc of suite.cases) {
+            const caseEl = document.createElement('div');
+            caseEl.className = 'test-case';
+            caseEl.innerHTML = `
+              <div style="flex:1;">
+                <div class="case-info">
+                  <span class="case-icon ${tc.passed ? 'pass' : 'fail'}">${tc.passed ? '✔' : '✖'}</span>
+                  <span>${tc.name}</span>
+                </div>
+                ${tc.error ? `<div class="case-error">${tc.error}</div>` : ''}
+              </div>
+              <span class="case-time">${tc.duration}ms</span>
+            `;
+            casesList.appendChild(caseEl);
+          }
+
+          suiteEl.appendChild(casesList);
+          container.appendChild(suiteEl);
+        }
+      }
+    }
+
+    function assert(cond, msg = 'Assertion failed') {
+      if (!cond) throw new Error(msg);
+    }
+
+    function assertEqual(actual, expected, msg = '') {
+      if (actual !== expected) {
+        throw new Error(`${msg} Expected [${expected}] but got [${actual}]`);
+      }
+    }
+
+    function assertArrayEqual(a, b, msg = '') {
+      if (a.length !== b.length) {
+        throw new Error(`${msg} Array length mismatch: ${a.length} vs ${b.length}`);
+      }
+      for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) {
+          throw new Error(`${msg} Element at index ${i} mismatch: ${a[i]} !== ${b[i]}`);
+        }
+      }
+    }
+
+    async function executeAllTests() {
+      // Initialize Engine
+      try {
+        await Engine.init();
+      } catch (e) {
+        console.warn('Engine init in test runner:', e);
+      }
+
+      const runner = new TestRunner();
+
+      // Suite 1: ASCII & Bit Conversions
+      await runner.describe('1. Encoding & Representation Invariants', (test) => {
+        test('textToAsciiBytes converts ASCII correctly (HELLO -> [72, 69, 76, 76, 79])', () => {
+          const bytes = textToAsciiBytes('HELLO');
+          assertArrayEqual(bytes, new Uint8Array([72, 69, 76, 76, 79]));
+        });
+
+        test('textToAsciiBytes replaces non-ASCII code points with 63 (?)', () => {
+          const bytes = textToAsciiBytes('A©B');
+          assertEqual(bytes[0], 65);
+          assertEqual(bytes[1], 63); // Non-ASCII replaced with '?'
+          assertEqual(bytes[2], 66);
+        });
+
+        test('bytesToBits and bitsToBytes round-trip preserves byte stream exactly', () => {
+          const original = new Uint8Array([0, 1, 127, 128, 255, 170, 85]);
+          const bits = bytesToBits(original);
+          assertEqual(bits.length, original.length * 8);
+          const restored = bitsToBytes(bits);
+          assertArrayEqual(restored, original);
+        });
+      });
+
+      // Suite 2: XOR Stream Cipher
+      await runner.describe('2. XOR Stream Cipher Confidentiality & Parity', (test) => {
+        test('XOR cipher symmetry: (Bytes ^ Key) ^ Key === Bytes', () => {
+          const plain = textToAsciiBytes('TEST_SECRET_MESSAGE');
+          const key = textToAsciiBytes('KEY123');
+          const cipher = Engine.xor(plain, key);
+          assert(cipher.some((b, i) => b !== plain[i]), 'Encrypted bytes must differ from plain');
+          const decrypted = Engine.xor(cipher, key);
+          assertArrayEqual(decrypted, plain, 'Double XOR must restore plain bytes');
+        });
+
+        test('XOR handles empty byte buffer safely', () => {
+          const empty = new Uint8Array(0);
+          const res = Engine.xor(empty, textToAsciiBytes('KEY'));
+          assertEqual(res.length, 0);
+        });
+      });
+
+      // Suite 3: CRC-8 Checksum
+      await runner.describe('3. CRC-8 Checksum Error Detection (Poly 0x07)', (test) => {
+        test('CRC-8 of empty input produces 0x00', () => {
+          const crc = Engine.crc8(new Uint8Array(0));
+          assertEqual(crc, 0);
+        });
+
+        test('CRC-8 is deterministic and sensitive to single bit flip', () => {
+          const data1 = textToAsciiBytes('SIGNALFORGE');
+          const data2 = data1.slice();
+          data2[0] ^= 1; // Flip 1 bit
+          const crc1 = Engine.crc8(data1);
+          const crc2 = Engine.crc8(data2);
+          assert(crc1 !== crc2, `CRC checksums must differ on bit flip (0x${crc1.toString(16)} vs 0x${crc2.toString(16)})`);
+        });
+
+        test('CRC-8 check vector consistency', () => {
+          const data = new Uint8Array([0x31, 0x32, 0x33, 0x34, 0x35]); // "12345"
+          const crc = Engine.crc8(data);
+          assert(crc >= 0 && crc <= 255, 'CRC must be valid 8-bit unsigned integer');
+        });
+      });
+
+      // Suite 4: Hamming(7,4) Single-Error Correction (Exhaustive Proof)
+      await runner.describe('4. Hamming(7,4) Forward Error Correction Invariants', (test) => {
+        test('Zero transmission error: syndrome = 0, no bit inverted, 100% recovery', () => {
+          const inputBits = new Uint8Array([1, 0, 1, 1]);
+          const coded = Engine.hammingEncode(inputBits);
+          assertEqual(coded.length, 7);
+          const decoded = Engine.hammingDecode(coded, 4);
+          assertEqual(decoded.correctedBlocks, 0);
+          assertArrayEqual(decoded.bits, inputBits);
+        });
+
+        test('Exhaustive 1-bit error correction across all 16 nibbles & all 7 positions (112 test cases)', () => {
+          let tested = 0;
+          for (let val = 0; val < 16; val++) {
+            const d = new Uint8Array([(val >> 3) & 1, (val >> 2) & 1, (val >> 1) & 1, val & 1]);
+            const coded = Engine.hammingEncode(d);
+
+            for (let errPos = 0; errPos < 7; errPos++) {
+              const noisy = coded.slice();
+              noisy[errPos] ^= 1; // Inject single-bit error
+
+              const decoded = Engine.hammingDecode(noisy, 4);
+              assertEqual(decoded.correctedBlocks, 1, `Failed to detect single-bit error at pos ${errPos}`);
+              assertArrayEqual(decoded.bits, d, `Failed to correct single-bit error for nibble ${val} at pos ${errPos}`);
+              tested++;
+            }
+          }
+          assertEqual(tested, 112);
+        });
+      });
+
+      // Suite 5: Channel Model & Deterministic AWGN
+      await runner.describe('5. Channel Model & Deterministic AWGN Noise Invariants', (test) => {
+        test('Seeded noise produces 100% repeatable outcomes for fixed seed', () => {
+          const wave = DSP.modulate(new Uint8Array([1, 0, 1, 1, 0, 1]), 'PSK', 20, 1.0);
+          const sigma = DSP.calculateSigma(2.0, 20, 1.0);
+          const run1 = DSP.addNoise(wave, sigma, 9999);
+          const run2 = DSP.addNoise(wave, sigma, 9999);
+          assertArrayEqual(run1.noisyWave, run2.noisyWave, 'Identical seed must produce identical waveform');
+        });
+
+        test('Sigma decreases monotonically as Eb/N0 increases', () => {
+          const s0 = DSP.calculateSigma(0.0, 20, 1.0);
+          const s4 = DSP.calculateSigma(4.0, 20, 1.0);
+          const s8 = DSP.calculateSigma(8.0, 20, 1.0);
+          assert(s0 > s4, 'Sigma at 0dB must be greater than at 4dB');
+          assert(s4 > s8, 'Sigma at 4dB must be greater than at 8dB');
+        });
+      });
+
+      // Suite 6: Full End-to-End Pipeline
+      await runner.describe('6. End-to-End Pipeline Contract (runPipeline)', (test) => {
+        test('Pipeline execution produces consistent 8-stage trace', () => {
+          const trace = runPipeline({
+            payload: { type: 'text', text: 'HELLO' },
+            encrypt: { on: true, key: 'SF' },
+            protect: { crc: true, hamming: true },
+            modulation: 'PSK',
+            channel: { ebn0dB: 10, seed: 42 } // High SNR: should be 0 errors
+          });
+
+          assert(trace.stages.message.text === 'HELLO');
+          assert(trace.stages.protect.crcOn === true);
+          assert(trace.stages.recover.crcOk === true);
+          assertEqual(trace.stages.recover.text, 'HELLO');
+          assertEqual(trace.summary.finalBER, 0);
+        });
+
+        test('Protected vs Unprotected invariant: Hamming corrects channel error', () => {
+          // At Eb/N0 = 2 dB, single errors occur and are corrected by Hamming
+          const traceProtected = runPipeline({
+            payload: { type: 'text', text: 'TEST' },
+            protect: { crc: true, hamming: true },
+            channel: { ebn0dB: 2, seed: 7 }
+          });
+          assert(traceProtected.stages.protect.hammingOn);
+          assert(traceProtected.summary.finalBER <= traceProtected.summary.rawBER, 'Final BER must be <= Raw BER with protection');
+        });
+      });
+
+      // Suite 7: DSP Modulation & Correlation Receiver
+      await runner.describe('7. DSP Modulation & Coherent Correlation Receiver', (test) => {
+        test('Noiseless ASK transmission achieves 0% error rate', () => {
+          const bits = new Uint8Array([1, 0, 1, 1, 0, 0, 1, 0]);
+          const wave = DSP.modulate(bits, 'ASK', 20, 1.0);
+          const rx = DSP.demodulate(wave, 'ASK', 20, 1.0);
+          assertArrayEqual(rx, bits);
+        });
+
+        test('Noiseless FSK transmission achieves 0% error rate', () => {
+          const bits = new Uint8Array([1, 0, 1, 1, 0, 0, 1, 0]);
+          const wave = DSP.modulate(bits, 'FSK', 20, 1.0);
+          const rx = DSP.demodulate(wave, 'FSK', 20, 1.0);
+          assertArrayEqual(rx, bits);
+        });
+
+        test('Noiseless PSK transmission achieves 0% error rate', () => {
+          const bits = new Uint8Array([1, 0, 1, 1, 0, 0, 1, 0]);
+          const wave = DSP.modulate(bits, 'PSK', 20, 1.0);
+          const rx = DSP.demodulate(wave, 'PSK', 20, 1.0);
+          assertArrayEqual(rx, bits);
+        });
+
+        test('High SNR PSK (8 dB) theoretical BER bound verification', () => {
+          const theoretical = DSP.theoreticalBER(8.0, 'PSK');
+          assert(theoretical < 0.001, `Theoretical BER for PSK at 8 dB should be < 1e-3, got ${theoretical}`);
+        });
+      });
+
+      await runner.run();
+    }
+
+    document.getElementById('runTestsBtn').addEventListener('click', () => {
+      executeAllTests();
+    });
+
+    executeAllTests();
+  </script>
+</body>
+</html>

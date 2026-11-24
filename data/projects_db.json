@@ -1,0 +1,42 @@
+[
+  {
+    "id": "proj-disaster-mgmt",
+    "title": "Disaster Management Text Sending",
+    "author": "Preet Tank, Vansh Thakur, Tejas Waghmode",
+    "category": "Emergency & Mesh Networks",
+    "tags": [
+      "LoRa",
+      "C++",
+      "AES-128",
+      "Ad-Hoc Mesh",
+      "Zero-Cellular"
+    ],
+    "summary": "Off-grid resilient emergency SMS transmission protocol using 433/868 MHz LoRa modules to transmit critical SOS packets when cellular towers and Wi-Fi collapse during disasters.",
+    "architecture": "Hardware: ESP32 + SX1278 LoRa Transceiver. Software: C++ embedded firmware implementing CSMA/CA packet backoff, AES-128 payload encryption, and multi-hop flood routing with packet deduplication (TTL=5).",
+    "githubUrl": "https://github.com/example/disaster-lora-mesh",
+    "demoUrl": "https://signalforge.local/#/demo/disaster-mesh",
+    "likes": 32,
+    "createdAt": "2026-11-15T10:30:00Z",
+    "discussions": []
+  },
+  {
+    "id": "proj-mesh-viz",
+    "title": "Mesh Network Visualization",
+    "author": "Shreyas Khabale, Omkar Deshmukh",
+    "category": "Network Simulation & DSP",
+    "tags": [
+      "WebAssembly",
+      "Dijkstra",
+      "Topology",
+      "Packet Routing",
+      "Canvas 2D"
+    ],
+    "summary": "Real-time interactive ad-hoc mesh networking simulator demonstrating dynamic routing path discovery, link latency variations, and automatic self-healing upon node destruction.",
+    "architecture": "Interactive visual canvas using custom WebAssembly routing engine. Models node energy levels, signal degradation with distance (Friis transmission equation), and dynamic rerouting using Bellman-Ford / AODV algorithms.",
+    "githubUrl": "https://github.com/example/mesh-network-vis",
+    "demoUrl": "https://signalforge.local/#/demo/mesh-vis",
+    "likes": 34,
+    "createdAt": "2026-11-19T14:15:00Z",
+    "discussions": []
+  }
+]

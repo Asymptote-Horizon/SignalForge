@@ -1,6 +1,17 @@
 # Dependencies
 node_modules/
 .pnpm-store/
+.env
+.env.local
+.env.*.local
+
+# Institutional demo & credentials (explicitly excluded)
+moodle-demo/
+
+# Documentation & context markdown files (excluded per instructions)
+complete context.md
+complete context.markdown
+SignalForge_Improvement_and_Hosting_Plan.md
 
 # OS / Editor files
 .DS_Store
@@ -11,11 +22,24 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Local logs
+# Local logs & caches
 *.log
 npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test screenshots & verification artifacts
+tools/*.png
+tools/wasm_*.png
+tools/mobile_*.png
+
+# Agent & system directories
+.agent/
+.system_generated/
+.user_uploaded/
 
 # Do NOT ignore wasm/engine.wasm
 !wasm/engine.wasm

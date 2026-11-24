@@ -18,7 +18,9 @@ export const Engine = {
   async init() {
     try {
       let wasmModule;
-      const wasmUrl = './wasm/engine.wasm';
+      const wasmUrl = typeof import.meta !== 'undefined' && import.meta.url
+        ? new URL('../wasm/engine.wasm', import.meta.url).href
+        : './wasm/engine.wasm';
 
       if (typeof WebAssembly.instantiateStreaming === 'function') {
         try {
@@ -262,8 +264,8 @@ export const Engine = {
       const p2 = d1 ^ d3 ^ d4;
       const p3 = d2 ^ d3 ^ d4;
       const o = b * 7;
-      jsCoded[o] = p1; jsCoded[o+1] = p2; jsCoded[o+2] = d1;
-      jsCoded[o+3] = p3; jsCoded[o+4] = d2; jsCoded[o+5] = d3; jsCoded[o+6] = d4;
+      jsCoded[o] = p1; jsCoded[o + 1] = p2; jsCoded[o + 2] = d1;
+      jsCoded[o + 3] = p3; jsCoded[o + 4] = d2; jsCoded[o + 5] = d3; jsCoded[o + 6] = d4;
     }
     const jsTime = performance.now() - t0;
 

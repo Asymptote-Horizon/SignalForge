@@ -28,19 +28,21 @@ At every stage, students see:
 ## Project Structure
 
 ```
-├── index.html                 # Single-page application router & screen containers
+├── index.html                 # Single-page application shell & screen containers
 ├── css/
-│   └── styles.css             # Design tokens, dark lab console theme, animations
+│   └── styles.css             # Codex design system, tokens, typography, and responsive grid
 ├── js/
-│   ├── main.js                # App bootstrapper, hash router, and session guards
-│   ├── state.js               # Global application state & sessionStorage persistence
+│   ├── main.js                # App bootstrapper, lab view mounting, and events
+│   ├── router.js              # Hash router, route whitelist, and session route guards
+│   ├── diagnostics.js         # Boot diagnostics, DOM mount verifier, and engine tracker
+│   ├── state.js               # Global reactive application state & sessionStorage persistence
 │   ├── engine.js              # WebAssembly loader & typed-array bit processing API
-│   ├── pipeline.js            # Pure logic: runPipeline(config) -> trace
+│   ├── pipeline.js            # Pure logic: runPipeline(config) -> trace (single source of truth)
 │   ├── dsp.js                 # Carrier synthesis, AWGN, correlator receiver, Q-function
 │   ├── map.js                 # SVG pipeline map with animated packet & particle effects
 │   ├── wave.js                # Canvas waveforms, overlays, histograms, and pixel grids
 │   ├── tour.js                # Guided tour controller state machine
-│   ├── chatbot.js             # Context-aware floating assistant
+│   ├── chatbot.js             # Context-aware floating assistant (offline + AI fallback)
 │   └── labs/
 │       ├── pipelineLab.js     # Practical 6: Digital Modulation & 8-stage Pipeline
 │       ├── mediaLab.js        # Practical 7: Image & Video Transmission, PCM Quantization
@@ -56,7 +58,14 @@ At every stage, students see:
 │   └── build.sh               # Compilation script (clang/emcc)
 ├── assets/
 │   ├── ping.txt               # 1-byte file for real latency ping tests
-│   └── payload.bin            # 2 MB binary file for throughput measurement
+│   ├── payload.bin            # 2 MB binary file for throughput measurement
+│   └── sample_photo.json      # 32x32 satellite dish grayscale payload fixture
+├── tests/
+│   ├── core-tests.html        # Browser unit test suite (14 mathematical invariant tests)
+│   └── manual-qa.md           # Repeatable manual route and UI QA checklist
+├── tools/
+│   ├── project_inventory.py   # Scans and reports repository file inventory
+│   └── verify-assets.mjs      # Validates asset checksums, file sizes, and binary headers
 ├── api/
 │   └── chat.js                # Optional Vercel serverless function (Gemini API)
 ├── vercel.json                # Vercel deployment headers and MIME types
@@ -67,17 +76,26 @@ At every stage, students see:
 
 ## Local Development & Running
 
-Serve the directory with any local static HTTP server:
+> [!IMPORTANT]
+> **Serve over HTTP/HTTPS, not direct file preview:**  
+> Modern browsers enforce strict CORS and ES module restrictions on `file:///` URLs. Opening `index.html` by double-clicking it in File Explorer will block JavaScript ES modules, JSON fetches, and WebAssembly instantiation.
+
+Serve the directory with any local static HTTP server from the root folder:
 
 ```bash
 # Using Python
-python3 -m http.server 8080
+python -m http.server 8000
 
 # Or using Node
 npx serve .
 ```
 
-Open `http://localhost:8080` in any modern web browser.
+Then open `http://localhost:8000/#/login` in your browser.
+
+To run the automated browser mathematical invariant tests, navigate to:
+```
+http://localhost:8000/tests/core-tests.html
+```
 
 ---
 
