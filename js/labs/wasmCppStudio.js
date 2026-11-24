@@ -15,8 +15,8 @@ export function wasmStudioMarkup() {
               <h2 class="section-title" style="margin: 0; font-size: 18px; font-weight: 800;">C++ Source Code Editor</h2>
             </div>
 
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              <select id="cppPresetSelect" style="padding:6px 10px;font-size:12px;font-weight:600;border:1.5px solid var(--line);border-radius:8px;background:var(--subtle);color:var(--text);cursor:pointer;">
+            <div class="wasm-btn-group" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <select id="cppPresetSelect" style="padding:7px 10px;font-size:12px;font-weight:600;border:1.5px solid var(--line);border-radius:8px;background:var(--subtle);color:var(--text);cursor:pointer;">
                 <option value="crc">1. CRC Generator & Error Check</option>
                 <option value="hamming">2. Hamming (7, 4) Error Correction</option>
                 <option value="shannon">3. Shannon-Hartley Channel Capacity</option>
@@ -29,19 +29,23 @@ export function wasmStudioMarkup() {
             </div>
           </div>
 
-          <p class="section-sub" style="margin-bottom:12px;">
+          <p class="section-sub" style="margin-bottom:8px;">
             Write or paste your C++ practical. Supports standard libraries (<code style="background:#f1f5f9;padding:2px 5px;border-radius:4px;color:#4f46e5;">&lt;iostream&gt;</code>, <code style="background:#f1f5f9;padding:2px 5px;border-radius:4px;color:#4f46e5;">&lt;vector&gt;</code>, bitwise operators).
           </p>
 
+          <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11.5px;color:#0369a1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+            <span>📱 <strong>Mobile & APK Mode:</strong> Bitwise logic, Shannon, Hamming, & CRC algorithms run client-side in WebAssembly. For native GCC server execution, visit <a href="https://signalforge.onrender.com/#/lab/wasm" target="_blank" style="color:#0284c7;font-weight:700;">signalforge.onrender.com ↗</a></span>
+          </div>
+
           <!-- Code Editor Wrapper (Clean Full-Width, Mathematically Locked Height) -->
           <div class="cpp-editor-container" style="border:1.5px solid var(--line);border-radius:12px;background:#090d16;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.18);display:flex;flex-direction:column;">
-            <div style="background:#0f172a;border-bottom:1px solid #1e293b;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;height:38px;box-sizing:border-box;flex-shrink:0;">
+            <div class="cpp-editor-header" style="background:#0f172a;border-bottom:1px solid #1e293b;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;min-height:38px;box-sizing:border-box;flex-shrink:0;">
               <div style="display:flex;align-items:center;gap:8px;">
                 <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#38bdf8;"></span>
                 <span style="font-family:'Fira Code', Consolas, monospace;font-size:12px;color:#cbd5e1;font-weight:700;">main.cpp</span>
-                <span style="font-family:sans-serif;font-size:11px;color:#64748b;font-weight:500;">— C++20 Standard</span>
+                <span class="cpp-standard-tag" style="font-family:sans-serif;font-size:11px;color:#64748b;font-weight:500;">— C++20 Standard</span>
               </div>
-              <span id="cppCharCount" style="font-family:'Fira Code', Consolas, monospace;font-size:11px;color:#64748b;">0 lines · 0 chars</span>
+              <span id="cppCharCount" style="font-family:'Fira Code', Consolas, monospace;font-size:11px;color:#64748b;white-space:nowrap;">0 lines · 0 chars</span>
             </div>
             
             <!-- Real Full-Height Textarea Code Editor (rows 22, explicit 480px, zero collapse) -->
@@ -507,11 +511,18 @@ export function initWasmStudio() {
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  // Keyboard shortcut Ctrl+Enter to compile
+  // Keyboard shortcut Ctrl+Enter to compile & Tab key for clean 4-space code indenting
   textarea.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
       executeCode();
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      textarea.value = textarea.value.substring(0, start) + '    ' + textarea.value.substring(end);
+      textarea.selectionStart = textarea.selectionEnd = start + 4;
+      updateCharCount();
     }
   });
 

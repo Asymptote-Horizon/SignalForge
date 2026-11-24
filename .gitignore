@@ -35,6 +35,8 @@ __pycache__/
 tools/*.png
 tools/wasm_*.png
 tools/mobile_*.png
+tools/test_*.mjs
+standalone-signalforge.html
 
 # Agent & system directories
 .agent/

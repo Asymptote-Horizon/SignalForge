@@ -17,12 +17,14 @@ import { initChatbot } from './chatbot.js';
 import { router } from './router.js';
 import { diagnostics } from './diagnostics.js';
 import { runPipeline, textToAsciiBytes, asciiBytesToText, bytesToBits, bitsToBytes } from './pipeline.js';
-import { mediaMarkup, initMediaStudio } from './labs/mediaStudio.js?v=20261125_05';
-import { otherLabsMarkup, initOtherLabsStudio } from './labs/otherLabsStudio.js?v=20261125_05';
-import { networkDiagnosticMarkup, initNetworkDiagnosticLab } from './labs/networkDiagnosticLab.js?v=20261125_05';
-import { wasmStudioMarkup, initWasmStudio } from './labs/wasmCppStudio.js?v=20261125_05';
-import { projectsGalleryMarkup, initProjectsGallery } from './labs/projectsGallery.js?v=20261125_05';
-import { resourcesFeedMarkup, initResourcesFeed } from './labs/resourcesFeed.js?v=20261125_05';
+import { mediaMarkup, initMediaStudio } from './labs/mediaStudio.js?v=20261125_10';
+import { otherLabsMarkup, initOtherLabsStudio } from './labs/otherLabsStudio.js?v=20261125_10';
+import { networkDiagnosticMarkup, initNetworkDiagnosticLab } from './labs/networkDiagnosticLab.js?v=20261125_10';
+import { wasmStudioMarkup, initWasmStudio } from './labs/wasmCppStudio.js?v=20261125_10';
+import { projectsGalleryMarkup, initProjectsGallery } from './labs/projectsGallery.js?v=20261125_10';
+import { resourcesFeedMarkup, initResourcesFeed } from './labs/resourcesFeed.js?v=20261125_10';
+import { bluetoothAnalyzerMarkup, initBluetoothAnalyzerLab } from './labs/bluetoothAnalyzerLab.js?v=20261125_10';
+import { p2pSharingMarkup, initP2PSharingLab } from './labs/p2pSharingLab.js?v=20261125_10';
 import { longHoverCue } from './longHoverCue.js';
 
 // Technical Glossary for Educational Flashcards & Wikipedia Links
@@ -824,6 +826,8 @@ function renderLab(lab) {
     wasm: 'WebAssembly C++ Studio',
     projects: 'Student Projects Gallery',
     resources: 'Resources & Emerging Tech Feed',
+    'bluetooth-analyzer': 'Bluetooth Neckband Range & Stream Buffer Analyzer',
+    p2p: 'Mobile Peer-to-Peer Data Link (Mini ShareIt)',
     other: 'Other Laboratories',
     signal: 'Signal Visualizer (XY Graph)',
     network: 'Network Foundations',
@@ -839,6 +843,8 @@ function renderLab(lab) {
     wasm: 'Interactive C++ code editor with syntax color-coding, compiler CLI terminal, and visual parameter playground.',
     projects: 'Explore peer telecommunication projects with 3D flip cards, live architectures, and public technical Q&A discussions.',
     resources: 'Live feed of trending data communication GitHub repositories, emerging research papers (6G, QKD, space lasers), and video lectures.',
+    'bluetooth-analyzer': 'Hardware telemetry for Bluetooth A2DP audio streaming, 2.4 GHz RF Friis log-distance path loss, and stream buffer underrun analysis beyond 10-meter boundary.',
+    p2p: 'Establish a direct Wi-Fi or Bluetooth Low Energy (BLE) link between two mobile phones to transmit and inspect over-the-air packet propagation.',
     other: 'Interactive Cartesian XY signal plotter, latency & throughput benchmarking, and slot multiplexing systems.',
     signal: 'Interactive Cartesian XY signal plotter with continuous carrier, message, and modulation curves.',
     network: 'Real HTTP ping latency testing, 2MB bandwidth measurement, and link delay calculations.',
@@ -861,6 +867,10 @@ function renderLab(lab) {
     contentHtml = projectsGalleryMarkup();
   } else if (lab === 'resources') {
     contentHtml = resourcesFeedMarkup();
+  } else if (lab === 'bluetooth-analyzer') {
+    contentHtml = bluetoothAnalyzerMarkup();
+  } else if (lab === 'p2p') {
+    contentHtml = p2pSharingMarkup();
   } else {
     // other, signal, network, mux, basics
     contentHtml = otherLabsMarkup();
@@ -887,6 +897,8 @@ function renderLab(lab) {
   else if (lab === 'wasm') initWasmStudio();
   else if (lab === 'projects') initProjectsGallery();
   else if (lab === 'resources') initResourcesFeed();
+  else if (lab === 'bluetooth-analyzer') initBluetoothAnalyzerLab();
+  else if (lab === 'p2p') initP2PSharingLab();
   else initOtherLabsStudio(lab === 'other' ? 'signal' : lab);
 }
 
@@ -1081,6 +1093,18 @@ function initProfileStudio() {
 // ==========================================
 function pipelineMarkup() {
   return `
+    <!-- Mobile P2P Device-to-Device Sharing Banner -->
+    <div style="background:linear-gradient(135deg, #1e1b4b, #312e81);color:#ffffff;border-radius:14px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;box-shadow:0 6px 20px rgba(49,46,129,0.25);">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:26px;">📲</span>
+        <div>
+          <div style="font-size:14px;font-weight:800;letter-spacing:-0.01em;">Live Over-the-Air Device Link (Wi-Fi / Bluetooth)</div>
+          <div style="font-size:12px;color:#c7d2fe;line-height:1.45;">Have two mobile devices? Connect Phone 1 & Phone 2 to transmit real over-the-air data packets!</div>
+        </div>
+      </div>
+      <a href="#/lab/p2p" class="btn small" style="background:#38bdf8;color:#0f172a;font-weight:800;border-radius:8px;padding:7px 16px;white-space:nowrap;text-decoration:none;">Open P2P ShareIt →</a>
+    </div>
+
     <div class="workspace-grid">
       <div class="workspace-left">
         <section class="panel panel-pad">

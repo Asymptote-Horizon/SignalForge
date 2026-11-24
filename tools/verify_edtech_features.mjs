@@ -5,8 +5,8 @@ function delay(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
 
-async function getPageWsUrl(port = 9223) {
-  for (let i = 0; i < 30; i++) {
+async function getPageWsUrl(port) {
+  for (let i = 0; i < 40; i++) {
     try {
       const res = await fetch(`http://127.0.0.1:${port}/json`);
       const list = await res.json();
@@ -77,10 +77,11 @@ async function run() {
   ];
   let chromeExe = possiblePaths.find(p => fs.existsSync(p)) || 'chrome';
 
+  const port = 9300 + Math.floor(Math.random() * 400);
   const tempUserData = `C:\\Users\\Omkar\\AppData\\Local\\Temp\\chrome_test_profile_${Date.now()}`;
   const chromeProc = spawn(chromeExe, [
     '--headless=new',
-    '--remote-debugging-port=9223',
+    `--remote-debugging-port=${port}`,
     '--disable-gpu',
     '--no-sandbox',
     `--user-data-dir=${tempUserData}`,
@@ -88,8 +89,8 @@ async function run() {
   ]);
 
   try {
-    await delay(1200);
-    const wsUrl = await getPageWsUrl(9223);
+    await delay(1500);
+    const wsUrl = await getPageWsUrl(port);
     const client = new CDPClient(wsUrl);
     await client.connect();
     await client.send('Network.enable');

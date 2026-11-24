@@ -15,7 +15,7 @@
     "architecture": "Hardware: ESP32 + SX1278 LoRa Transceiver. Software: C++ embedded firmware implementing CSMA/CA packet backoff, AES-128 payload encryption, and multi-hop flood routing with packet deduplication (TTL=5).",
     "githubUrl": "https://github.com/example/disaster-lora-mesh",
     "demoUrl": "https://signalforge.local/#/demo/disaster-mesh",
-    "likes": 32,
+    "likes": 33,
     "createdAt": "2026-11-15T10:30:00Z",
     "discussions": []
   },
@@ -37,6 +37,26 @@
     "demoUrl": "https://signalforge.local/#/demo/mesh-vis",
     "likes": 34,
     "createdAt": "2026-11-19T14:15:00Z",
+    "discussions": []
+  },
+  {
+    "id": "proj-bt-neckband",
+    "title": "Bluetooth Neckband Range & Stream Buffer Analyzer",
+    "author": "Omkar Deshmukh",
+    "category": "Wireless Telemetry & Bluetooth DSP",
+    "tags": [
+      "Bluetooth 5.2",
+      "A2DP Audio",
+      "RSSI Path Loss",
+      "Buffer Underrun",
+      "Web Audio"
+    ],
+    "summary": "Live experimental telemetry for Bluetooth neckbands and wireless headsets. Measures 2.4 GHz RF attenuation, packet drop behavior beyond the 10-meter cutoff, and stream buffer underrun persistence.",
+    "architecture": "Hardware: Bluetooth 5.2 Neckband / Headset. Software: Web Audio API AudioSink routing, Log-distance path loss telemetry, and buffer underrun state machine.",
+    "githubUrl": "https://github.com/Asymptote-Horizon/SignalForge",
+    "demoUrl": "#/lab/bluetooth-analyzer",
+    "likes": 42,
+    "createdAt": "2026-11-25T01:30:00Z",
     "discussions": []
   }
 ]
