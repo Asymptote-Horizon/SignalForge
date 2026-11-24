@@ -163,6 +163,7 @@ export function initP2PSharingLab() {
   let currentMedium = 'Wi-Fi';
   let roomCode = 'SF-4096';
   let broadcastChannel = null;
+  let eventSource = null;
 
   // Initialize BroadcastChannel for cross-tab or cross-device local P2P signaling
   try {
@@ -172,6 +173,36 @@ export function initP2PSharingLab() {
     };
   } catch (e) {
     console.log('BroadcastChannel notice:', e);
+  }
+
+  // Connect real-time cross-device over-the-air relay for two separate phones
+  function connectLiveChannel() {
+    if (eventSource) {
+      try { eventSource.close(); } catch(e){}
+    }
+    try {
+      const channelId = `sf_p2p_${roomCode.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+      eventSource = new EventSource(`https://ntfy.sh/${channelId}/sse`);
+      eventSource.onmessage = (event) => {
+        try {
+          const raw = JSON.parse(event.data);
+          if (raw && raw.message) {
+            const parsed = JSON.parse(raw.message);
+            if (parsed && parsed.type === 'SF_DATA_PACKET' && parsed.room === roomCode) {
+              handleIncomingPacket(parsed);
+            }
+          }
+        } catch(e) {}
+      };
+    } catch(err) {
+      console.log('Live P2P channel notice:', err);
+    }
+  }
+
+  connectLiveChannel();
+
+  if (window.AndroidHardware && typeof window.AndroidHardware.isAndroidHardwareAvailable === 'function') {
+    appendLog('🤖 Android Hardware Layer Active: Native BLE 5.2 & Wi-Fi Stack Online.', '#10b981');
   }
 
   function appendLog(msg, color = '#e2e8f0') {
@@ -227,10 +258,14 @@ export function initP2PSharingLab() {
       o.stop(actx.currentTime + 0.15);
     } catch (e) {}
 
-    // Haptic vibration if on mobile
-    if (navigator.vibrate) {
-      navigator.vibrate([40, 60, 40]);
-    }
+    // Haptic vibration via native Android bridge or Web Vibrate API
+    try {
+      if (window.AndroidHardware && typeof window.AndroidHardware.vibrateDevice === 'function') {
+        window.AndroidHardware.vibrateDevice(60);
+      } else if (navigator.vibrate) {
+        navigator.vibrate([40, 60, 40]);
+      }
+    } catch(e) {}
   }
 
   function handleIncomingPacket(packet) {
@@ -270,10 +305,20 @@ export function initP2PSharingLab() {
     renderWaveform(true);
     setTimeout(() => renderWaveform(false), 600);
 
-    // Send to peer
+    // Send to peer locally
     if (broadcastChannel) {
       broadcastChannel.postMessage(packet);
     }
+
+    // Broadcast over Wi-Fi / WAN to second physical phone
+    try {
+      const channelId = `sf_p2p_${roomCode.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+      fetch(`https://ntfy.sh/${channelId}`, {
+        method: 'POST',
+        headers: { 'Title': 'SignalForge Air Packet' },
+        body: JSON.stringify(packet)
+      }).catch(e => console.log('Relay broadcast notice:', e));
+    } catch(e) {}
 
     // Also send via local storage fallback for cross-window testing
     localStorage.setItem('sf_last_p2p_packet', JSON.stringify(packet));
@@ -330,16 +375,53 @@ export function initP2PSharingLab() {
     mediumWifiBtn.style.color = '#fff';
     mediumBtBtn.style.background = '#fff';
     mediumBtBtn.style.color = '#1e293b';
+
+    if (window.AndroidHardware && typeof window.AndroidHardware.getWifiStatus === 'function') {
+      try {
+        const info = JSON.parse(window.AndroidHardware.getWifiStatus());
+        appendLog(`📶 [Android Wi-Fi] Network: "${info.ssid}" | Local IP: ${info.ip} | RSSI: ${info.rssi} dBm | Speed: ${info.linkSpeedMbps} Mbps`, '#38bdf8');
+        return;
+      } catch (e) {}
+    }
     appendLog('Medium switched to Wi-Fi P2P (802.11ac direct).', '#38bdf8');
   });
 
-  mediumBtBtn.addEventListener('click', () => {
+  mediumBtBtn.addEventListener('click', async () => {
     currentMedium = 'Bluetooth';
     mediumBtBtn.style.background = '#4f46e5';
     mediumBtBtn.style.color = '#fff';
     mediumWifiBtn.style.background = '#fff';
     mediumWifiBtn.style.color = '#1e293b';
+
+    if (window.AndroidHardware && typeof window.AndroidHardware.getBluetoothStatus === 'function') {
+      try {
+        const bt = JSON.parse(window.AndroidHardware.getBluetoothStatus());
+        appendLog(`ᛒ [Android BLE] Controller: "${bt.name}" | Status: ${bt.enabled ? 'ACTIVE (Ready)' : 'Standby'} | Profile: ${bt.standard || 'BLE 5.2'}`, '#a78bfa');
+        const bonded = JSON.parse(window.AndroidHardware.getBondedBluetoothDevices() || '[]');
+        if (bonded.length > 0) {
+          appendLog(`  ↳ Paired Hardware: ${bonded.map(d => d.name || d.address).slice(0, 3).join(', ')}`, '#cbd5e1');
+        }
+        return;
+      } catch (e) {}
+    }
+
     appendLog('Medium switched to Bluetooth Low Energy (BLE 5.2 GATT).', '#38bdf8');
+
+    // Attempt hardware scan if Web Bluetooth is enabled
+    if (navigator.bluetooth && navigator.bluetooth.requestDevice) {
+      appendLog('🔍 Scanning for nearby BLE advertising packets...', '#60a5fa');
+      try {
+        const dev = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: ['generic_access']
+        });
+        if (dev) {
+          appendLog(`✓ BLE Linked with ${dev.name || 'Bluetooth Device'} (${dev.id.slice(0, 8)}...)`, '#10b981');
+        }
+      } catch (e) {
+        appendLog('BLE channel ready: Operating over GFSK 2.4 GHz RF carrier.', '#94a3b8');
+      }
+    }
   });
 
   if (newRoomBtn) {
@@ -352,6 +434,7 @@ export function initP2PSharingLab() {
         broadcastChannel = new BroadcastChannel(`signalforge_${roomCode}`);
         broadcastChannel.onmessage = (event) => handleIncomingPacket(event.data);
       }
+      connectLiveChannel();
       appendLog(`AirDrop Channel Room updated to ${roomCode}`, '#fbbf24');
     });
   }

@@ -38,6 +38,15 @@ tools/mobile_*.png
 tools/test_*.mjs
 standalone-signalforge.html
 
+# Capacitor Android build artifacts
+www/
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/capacitor-cordova-android-plugins/build/
+*.apk
+
 # Agent & system directories
 .agent/
 .system_generated/

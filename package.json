@@ -1,0 +1,29 @@
+{
+  "name": "signalforge-main",
+  "version": "1.0.0",
+  "description": "SignalForge is an interactive virtual laboratory designed for undergraduate engineering students taking **Data Communication Lab**. It lets students follow a single piece of source information (text, photo, or video) from their keyboard through an entire 8-stage communication system:",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Asymptote-Horizon/SignalForge.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Asymptote-Horizon/SignalForge/issues"
+  },
+  "homepage": "https://github.com/Asymptote-Horizon/SignalForge#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/core": "^8.6.2"
+  }
+}
