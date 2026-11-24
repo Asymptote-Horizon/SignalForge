@@ -1555,7 +1555,7 @@ function initEventListeners() {
       signUpBtn.style.color = 'var(--muted)';
       signUpBtn.innerHTML = 'Sign Up (New)';
 
-      submitLoginBtn.innerHTML = 'Enter the lab <span aria-hidden="true">→</span>';
+      submitLoginBtn.innerHTML = 'Sign In to the Lab <span aria-hidden="true">→</span>';
     });
 
     signUpBtn.addEventListener('click', () => {
@@ -1569,7 +1569,7 @@ function initEventListeners() {
       signInBtn.style.color = 'var(--muted)';
       signInBtn.innerHTML = 'Sign In';
 
-      submitLoginBtn.innerHTML = 'Create Account & Enter <span aria-hidden="true">→</span>';
+      submitLoginBtn.innerHTML = 'Sign Up for the Lab <span aria-hidden="true">→</span>';
     });
   }
 
